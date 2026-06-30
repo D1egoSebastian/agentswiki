@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Atlas — Guía de Agentes de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #14151A;
+  --surface: #1C1D24;
+  --surface-hover: #24252D;
+  --border: #2C2D35;
+  --text-primary: #E8E6E1;
+  --text-secondary: #95939E;
+  --accent-gold: #D4A043;
+  --accent-gold-dim: rgba(212, 160, 67, 0.15);
+  --accent-teal: #4CB3A8;
+  --accent-coral: #D66A5E;
+  --font-display: 'STIX Two Text', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+  --max-width: 700px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 1rem;
+  font-weight: 400;
+  background-image: radial-gradient(circle at 1px 1px, rgba(212, 160, 67, 0.03) 1px, transparent 0);
+  background-size: 40px 40px;
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--accent-gold-dim);
+  color: var(--accent-gold);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+a {
+  color: var(--accent-teal);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--accent-gold);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(255,255,255,0.06);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  color: var(--accent-teal);
+}
+
+/* ─── HERO ─── */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 700px;
+  height: 700px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(212, 160, 67, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title .gold {
+  color: var(--accent-gold);
+}
+
+.hero-sub {
+  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 0.75rem;
+  max-width: 480px;
+  line-height: 1.6;
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── NODE DIAGRAM ─── */
+
+.node-diagram-wrap {
+  width: 100%;
+  max-width: 560px;
+  margin: 2.5rem auto 0;
+  position: relative;
+  z-index: 1;
+}
+
+.node-diagram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.conn-line {
+  stroke: var(--border);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+.node-g circle {
+  fill: var(--border);
+  stroke: transparent;
+  transition: fill 0.6s ease, stroke 0.6s ease;
+}
+
+.node-g text {
+  font-family: var(--font-body);
+  font-size: 11px;
+  fill: var(--text-secondary);
+  text-anchor: middle;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: fill 0.6s ease;
+}
+
+.node-g.pulse circle {
+  fill: var(--accent-gold);
+  stroke: var(--accent-gold);
+  stroke-width: 2;
+}
+
+.node-g.pulse text {
+  fill: var(--accent-gold);
+}
+
+.node-g dot {
+  fill: var(--accent-gold);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+
+.node-g.pulse dot {
+  opacity: 1;
+}
+
+/* Connection glow */
+.conn-line.glow {
+  stroke: var(--accent-gold);
+  stroke-width: 2;
+  opacity: 0.6;
+}
+
+/* ─── SCROLL INDICATOR ─── */
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  animation: bob 2s ease-in-out infinite;
+}
+
+.scroll-indicator line {
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── SECTIONS ─── */
+
+.section {
+  padding: 5rem 1.5rem;
+  position: relative;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  left: max(calc((100% - var(--max-width)) / 2 - 26px), 1.25rem);
+  top: 5.6rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px rgba(212, 160, 67, 0.25);
+  opacity: 0.5;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.section:hover::before {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.section-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent-gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.section h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.section h2 .gold {
+  color: var(--accent-gold);
+}
+
+.section p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.section p:last-child {
+  margin-bottom: 0;
+}
+
+.section-rule {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* ─── CARDS ─── */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.card:hover {
+  border-color: var(--accent-gold-dim);
+  background: var(--surface-hover);
+}
+
+.card-title {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-title .marker {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.card p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* ─── STACK VISUAL ─── */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 2rem;
+  position: relative;
+}
+
+.stack-layer {
+  display: flex;
+  gap: 1.5rem;
+  align-items: stretch;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.stack-layer:last-child {
+  border-bottom: none;
+}
+
+.stack-layer:first-child {
+  padding-top: 0;
+}
+
+.stack-layer:hover {
+  border-bottom-color: var(--accent-gold-dim);
+}
+
+.stack-num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent-gold);
+  opacity: 0.5;
+  min-width: 1.5rem;
+  padding-top: 0.1rem;
+}
+
+.stack-content {
+  flex: 1;
+}
+
+.stack-layer h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.stack-layer p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.stack-layer .tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.tag:hover {
+  border-color: var(--accent-gold-dim);
+  color: var(--accent-gold);
+}
+
+/* ─── COMPONENTS SECTION (diagram on right) ─── */
+
+.component-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.component-item {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.component-item:hover {
+  border-color: var(--accent-gold-dim);
+}
+
+.component-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.component-dot.gold { background: var(--accent-gold); }
+.component-dot.teal { background: var(--accent-teal); }
+.component-dot.coral { background: var(--accent-coral); }
+
+.component-item h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.component-item p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* ─── STEP LIST ─── */
+
+.step-list {
+  list-style: none;
+  margin-top: 2rem;
+}
+
+.step-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+
+.step-list li:last-child {
+  border-bottom: none;
+}
+
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-gold);
+  min-width: 1.8rem;
+  padding-top: 0.1rem;
+}
+
+.step-list li p {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.step-list li strong {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ─── FOOTER ─── */
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.footer-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.footer p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.footer-links a {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--accent-gold);
+}
+
+/* ─── SCROLL REVEAL ─── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── RESPONSIVE ─── */
+
+@media (max-width: 768px) {
+  .section {
+    padding: 3rem 1.25rem;
+  }
+
+  .section::before {
+    display: none;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .component-item {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stack-layer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    min-height: 90vh;
+    padding: 1.5rem 1rem;
+  }
+
+  .node-diagram-wrap {
+    margin-top: 1.5rem;
+  }
+
+  .section {
+    padding: 2.5rem 1rem;
+  }
+}
+
+/* ─── REDUCED MOTION ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .scroll-indicator {
+    animation: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .node-g circle,
+  .conn-line,
+  .conn-line.glow {
+    transition: none;
+    animation: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <h1 class="hero-title">
+    Agent <span class="gold">Atlas</span>
+  </h1>
+  <p class="hero-sub">
+    Una guía visual para entender, diseñar y construir con agentes de inteligencia artificial
+  </p>
+
+  <div class="node-diagram-wrap">
+    <svg class="node-diagram" viewBox="0 0 600 440" fill="none" aria-hidden="true">
+      <!-- Connections -->
+      <line class="conn-line" x1="300" y1="70" x2="100" y2="200" />
+      <line class="conn-line" x1="300" y1="70" x2="500" y2="200" />
+      <line class="conn-line" x1="300" y1="70" x2="180" y2="350" />
+      <line class="conn-line" x1="300" y1="70" x2="420" y2="350" />
+      <line class="conn-line" x1="100" y1="200" x2="500" y2="200" />
+      <line class="conn-line" x1="100" y1="200" x2="180" y2="350" />
+      <line class="conn-line" x1="500" y1="200" x2="420" y2="350" />
+      <line class="conn-line" x1="500" y1="200" x2="180" y2="350" />
+      <line class="conn-line" x1="180" y1="350" x2="420" y2="350" />
+
+      <!-- LLM node -->
+      <g class="node-g" data-node="llm">
+        <circle cx="300" cy="70" r="24" />
+        <text x="300" y="106" font-size="12">LLM</text>
+      </g>
+
+      <!-- Tools node -->
+      <g class="node-g" data-node="tools">
+        <circle cx="100" cy="200" r="22" />
+        <text x="100" y="236" font-size="11">Tools</text>
+      </g>
+
+      <!-- Orchestracion node -->
+      <g class="node-g" data-node="orch">
+        <circle cx="500" cy="200" r="22" />
+        <text x="500" y="236" font-size="10">Orch.</text>
+      </g>
+
+      <!-- Memoria node -->
+      <g class="node-g" data-node="memoria">
+        <circle cx="180" cy="350" r="22" />
+        <text x="180" y="386" font-size="11">Memoria</text>
+      </g>
+
+      <!-- Evaluacion node -->
+      <g class="node-g" data-node="eval">
+        <circle cx="420" cy="350" r="22" />
+        <text x="420" y="386" font-size="10">Eval.</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="scroll-indicator" aria-hidden="true">
+    <svg width="16" height="24" viewBox="0 0 16 24">
+      <line x1="8" y1="4" x2="8" y2="18" />
+      <polyline points="4,14 8,20 12,14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</header>
+
+<main>
+
+<!-- Section 1: Que es un agente -->
+<hr class="section-rule" aria-hidden="true">
+<section class="section" id="que-es">
+  <div class="section-inner">
+    <span class="section-label">01 — Concepto</span>
+    <h2 class="reveal">Que es un <span class="gold">agente</span> de IA</h2>
+    <p class="reveal">
+      Un agente de IA es un sistema autonomo que combina un modelo de lenguaje (LLM) con herramientas, memoria y capacidad de razonamiento para lograr objetivos complejos. A diferencia de un chatbot tradicional, un agente puede planificar, ejecutar acciones, evaluar resultados y adaptar su comportamiento en tiempo real.
+    </p>
+
+    <div class="card-grid reveal">
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-gold)"></span>Autonomia</div>
+        <p>Toma decisiones y ejecuta acciones sin intervencion humana directa. Define planes, los ejecuta y se ajusta cuando encuentra obstaculos.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-teal)"></span>Herramientas</div>
+        <p>Interactua con el mundo exterior: APIs, bases de datos, navegadores, sistemas de archivos. Cada herramienta expande lo que el agente puede hacer.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-gold)"></span>Memoria</div>
+        <p>Mantiene contexto a lo largo de interacciones largas. Memoria a corto plazo (ventana de contexto) y a largo plazo (bases vectoriales, resumenes).</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-teal)"></span>Razonamiento</div>
+        <p>Descompone problemas complejos en pasos manejables. Usa chain-of-thought, reflexion y autoevaluacion para mejorar sus resultados.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Arquitectura -->
+<hr class="section-rule" aria-hidden="true">
+<section class="section" id="arquitectura">
+  <div class="section-inner">
+    <span class="section-label">02 — Estructura</span>
+    <h2 class="reveal">Arquitectura <span class="gold">fundamental</span></h2>
+    <p class="reveal">
+      Cinco capas que trabajan juntas para hacer posible un agente de IA. Cada capa abstrae complejidad y expone una interfaz clara a la capa superior.
+    </p>
+
+    <div class="stack reveal">
+      <div class="stack-layer">
+        <div class="stack-num">05</div>
+        <div class="stack-content">
+          <h3>Aplicacion</h3>
+          <p>Interfaz de usuario, chat, dashboard. El punto de contacto entre el usuario y el agente.</p>
+          <div class="tag-list">
+            <span class="tag">UI</span>
+            <span class="tag">CLI</span>
+            <span class="tag">API</span>
+          </div>
+        </div>
+      </div>
+      <div class="stack-layer">
+        <div class="stack-num">04</div>
+        <div class="stack-content">
+          <h3>Orquestacion</h3>
+          <p>Coordina el flujo entre el LLM, las herramientas y la memoria. Maneja loops, errores, reintentos y la secuencia de operaciones.</p>
+          <div class="tag-list">
+            <span class="tag">LangGraph</span>
+            <span class="tag">Vercel AI SDK</span>
+            <span class="tag">CrewAI</span>
+          </div>
+        </div>
+      </div>
+      <div class="stack-layer">
+        <div class="stack-num">03</div>
+        <div class="stack-content">
+          <h3>Agente (LLM)</h3>
+          <p>Razonamiento, planificacion, ejecucion de pasos. El nucleo que decide que hacer y en que orden.</p>
+          <div class="tag-list">
+            <span class="tag">Prompts</span>
+            <span class="tag">Toolsets</span>
+            <span class="tag">Config</span>
+          </div>
+        </div>
+      </div>
+      <div class="stack-layer">
+        <div class="stack-num">02</div>
+        <div class="stack-content">
+          <h3>Modelos</h3>
+          <p>Modelos de lenguaje (LLMs) como GPT-4, Claude, Llama. Procesadores de texto, imagen y audio.</p>
+          <div class="tag-list">
+            <span class="tag">OpenAI</span>
+            <span class="tag">Anthropic</span>
+            <span class="tag">Google</span>
+            <span class="tag">Ollama</span>
+          </div>
+        </div>
+      </div>
+      <div class="stack-layer">
+        <div class="stack-num">01</div>
+        <div class="stack-content">
+          <h3>Infraestructura</h3>
+          <p>Bases vectoriales, servidores MCP, almacenamiento, APIs externas. La base que soporta todo el sistema.</p>
+          <div class="tag-list">
+            <span class="tag">Pinecone</span>
+            <span class="tag">Chroma</span>
+            <span class="tag">MCP</span>
+            <span class="tag">Qdrant</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Componentes Clave -->
+<hr class="section-rule" aria-hidden="true">
+<section class="section" id="componentes">
+  <div class="section-inner">
+    <span class="section-label">03 — Bloques</span>
+    <h2 class="reveal">Componentes <span class="gold">clave</span></h2>
+    <p class="reveal">
+      Cada componente de un agente tiene una funcion especifica. Entenderlos por separado ayuda a disenar sistemas mejores.
+    </p>
+
+    <div class="component-list reveal">
+      <div class="component-item">
+        <div class="component-dot gold"></div>
+        <div>
+          <h3>LLM / Modelo de Lenguaje</h3>
+          <p>El nucleo del agente. Procesa instrucciones, razona sobre problemas y genera texto, codigo o datos estructurados. La eleccion del modelo define las capacidades base del agente.</p>
+        </div>
+      </div>
+      <div class="component-item">
+        <div class="component-dot teal"></div>
+        <div>
+          <h3>Sistema de Tools / MCP</h3>
+          <p>El protocolo MCP (Model Context Protocol) estandariza como los agentes descubren e interactuan con herramientas externas: buscar en la web, leer archivos, ejecutar codigo, consultar APIs.</p>
+        </div>
+      </div>
+      <div class="component-item">
+        <div class="component-dot gold"></div>
+        <div>
+          <h3>Memoria Vectorial</h3>
+          <p>Los embeddings convierten texto en vectores numericos. La memoria a largo plazo almacena estos vectores y permite busqueda semantica: el agente "recuerda" informacion relevante aunque no este en la conversacion actual.</p>
+        </div>
+      </div>
+      <div class="component-item">
+        <div class="component-dot coral"></div>
+        <div>
+          <h3>Orquestador</h3>
+          <p>Coordina el flujo entre el LLM, las herramientas y la memoria. Frameworks como LangGraph y Vercel AI SDK proporcionan orquestadores listos para usar con loops, errores y secuencias.</p>
+        </div>
+      </div>
+      <div class="component-item">
+        <div class="component-dot teal"></div>
+        <div>
+          <h3>Evaluacion y Feedback</h3>
+          <p>Mide la calidad del agente: precision de respuestas, tasa de exito en tareas, adherencia a instrucciones. Los evals automatizados permiten mejora continua.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: De la teoria a la practica -->
+<hr class="section-rule" aria-hidden="true">
+<section class="section" id="practica">
+  <div class="section-inner">
+    <span class="section-label">04 — Accion</span>
+    <h2 class="reveal">De la teoria a la <span class="gold">practica</span></h2>
+    <p class="reveal">
+      Construir tu primer agente parece complejo, pero se reduce a una secuencia clara de decisiones. Aqui tienes una ruta probada.
+    </p>
+
+    <ol class="step-list reveal">
+      <li>
+        <span class="step-num">01</span>
+        <p><strong>Comprende los fundamentos.</strong> Lee sobre agentes, MCP y RAG. La documentacion de Anthropic sobre agentes y la guia de OpenAI son los mejores puntos de partida.</p>
+      </li>
+      <li>
+        <span class="step-num">02</span>
+        <p><strong>Elige un framework.</strong> <code>Vercel AI SDK</code> para aplicaciones web, <code>LangChain/LangGraph</code> para experimentacion, <code>CrewAI</code> para sistemas multi-agente, <code>AutoGen</code> para agentes conversacionales.</p>
+      </li>
+      <li>
+        <span class="step-num">03</span>
+        <p><strong>Construye un agente simple.</strong> Un agente que busque en la web y resuma resultados. Conecta una herramienta, dale una instruccion clara, observa como responde.</p>
+      </li>
+      <li>
+        <span class="step-num">04</span>
+        <p><strong>Anade memoria.</strong> Implementa memoria con embeddings y una base vectorial como Chroma o Pinecone. Tu agente recordara conversaciones anteriores y contextos relevantes.</p>
+      </li>
+      <li>
+        <span class="step-num">05</span>
+        <p><strong>Expande y evalua.</strong> Anade mas herramientas, experimenta con multi-agente, implementa evaluacion automatizada. Mide cada cambio.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- Section 5: Frameworks -->
+<hr class="section-rule" aria-hidden="true">
+<section class="section" id="frameworks">
+  <div class="section-inner">
+    <span class="section-label">05 — Herramientas</span>
+    <h2 class="reveal">Frameworks y <span class="gold">herramientas</span></h2>
+    <p class="reveal">
+      El ecosistema de agentes evoluciona rapido. Estos son los proyectos que definen el estado del arte hoy.
+    </p>
+
+    <div class="card-grid reveal">
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-gold)"></span>Vercel AI SDK</div>
+        <p>SDK unificado para streaming, tool use y generacion con React, Node.js y Edge Runtime. El estandar moderno para agentes en la web.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-teal)"></span>LangChain / LangGraph</div>
+        <p>Framework para construir agentes con cadenas y grafos. LangGraph anade loops, ciclos y control de flujo avanzado para agentes complejos.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-gold)"></span>CrewAI</div>
+        <p>Framework multi-agente con roles, tareas y procesos. Disenado para simular equipos de agentes colaborando en objetivos compartidos.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-coral)"></span>AutoGen</div>
+        <p>Framework de Microsoft para agentes conversacionales multi-agente. Soporta conversaciones entre agentes, herramientas y humanos.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="marker" style="background:var(--accent-teal)"></span>MCP</div>
+        <p>Model Context Protocol: el estandar abierto de Anthropic para conectar agentes con herramientas externas. Define como un agente descubre y usa herramientas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <p>Hecho con opencode</p>
+    <div class="footer-links">
+      <a href="https://docs.anthropic.com/en/docs/build-with-claude/agent-patterns" target="_blank" rel="noopener">Anthropic — Agent patterns</a>
+      <a href="https://platform.openai.com/docs/guides/agents" target="_blank" rel="noopener">OpenAI — Agents guide</a>
+      <a href="https://sdk.vercel.ai" target="_blank" rel="noopener">Vercel AI SDK</a>
+      <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP Specification</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  // ─── Node pulse sequence ───
+
+  const svg = document.querySelector('.node-diagram');
+  if (svg) {
+    const nodes = svg.querySelectorAll('.node-g');
+    const lines = svg.querySelectorAll('.conn-line');
+    const sequence = ['llm', 'tools', 'memoria', 'orch', 'eval'];
+    let currentIdx = -1;
+
+    function pulseNext() {
+      nodes.forEach(n => n.classList.remove('pulse'));
+      lines.forEach(l => l.classList.remove('glow'));
+
+      currentIdx = (currentIdx + 1) % sequence.length;
+      const id = sequence[currentIdx];
+      const node = svg.querySelector(`.node-g[data-node="${id}"]`);
+      if (node) node.classList.add('pulse');
+
+      // Glow lines connected to this node
+      const positions = {
+        llm: [300, 70],
+        tools: [100, 200],
+        memoria: [180, 350],
+        orch: [500, 200],
+        eval: [420, 350]
+      };
+      const [cx, cy] = positions[id] || [0, 0];
+      lines.forEach(line => {
+        const lx1 = parseFloat(line.getAttribute('x1'));
+        const ly1 = parseFloat(line.getAttribute('y1'));
+        const lx2 = parseFloat(line.getAttribute('x2'));
+        const ly2 = parseFloat(line.getAttribute('y2'));
+        if ((Math.abs(lx1 - cx) < 5 && Math.abs(ly1 - cy) < 5) ||
+            (Math.abs(lx2 - cx) < 5 && Math.abs(ly2 - cy) < 5)) {
+          line.classList.add('glow');
+        }
+      });
+    }
+
+    // Start sequence
+    if (nodes.length) {
+      pulseNext();
+      setInterval(pulseNext, 1800);
+    }
+  }
+
+  // ─── Scroll reveal ───
+
+  const revealEls = document.querySelectorAll('.reveal');
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    revealEls.forEach(el => observer.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('visible'));
+  }
+
+})();
+</script>
+</body>
+</html>
