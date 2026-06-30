@@ -27,6 +27,8 @@ Guia Operativa E2E para construir sistemas con agentes de inteligencia artificia
 ├── tailwind.config.js          # Paleta oscura bicolor: carbon + ambar + azul nexo
 ├── postcss.config.js
 ├── .github/workflows/deploy.yml # CI/CD a GitHub Pages
+├── public/
+│   └── 404.html                # SPA fallback para GitHub Pages
 │
 ├── spec/                       # Documentacion de producto
 │   └── constitution/
@@ -308,12 +310,84 @@ npm run preview  # Servir build localmente para verificar
 
 El proyecto incluye un workflow de GitHub Actions (`.github/workflows/deploy.yml`) que:
 
-1. Hace build del proyecto en cada push a `main`.
-2. Sube el output (`dist/`) como artifact.
-3. Despliega a GitHub Pages.
+1. Configura Pages con `actions/configure-pages@v5` (antes del build).
+2. Instala dependencias con `npm ci` (Node 22).
+3. Hace build del proyecto con `vite build` (base: `/agentswiki/`).
+4. Sube el output como artifact con `actions/upload-pages-artifact@v4` (`path: dist`).
+5. Despliega a GitHub Pages con `actions/deploy-pages@v4`.
+
+### Requisito para GitHub Pages
+
+El **Source** en Settings > Pages debe estar en **"GitHub Actions"**, no "Deploy from a branch".
+De lo contrario, GitHub ignora el artifact y sirve los archivos fuente de la rama, resultando
+en una pagina en blanco (el `index.html` fuente referencia `/src/main.jsx` en vez del bundle).
+
+### SPA Fallback (404.html)
+
+GitHub Pages no tiene soporte nativo para SPAs. Al refrescar una sub-ruta (ej. `/agentswiki/agentes`),
+GitHub busca un archivo que no existe y devuelve 404. El archivo `public/404.html` se copia
+automaticamente a `dist/` por Vite y redirige al root preservando la ruta en `sessionStorage`.
+
+### Debug de pagina en blanco
+
+Si el deploy es exitoso pero la pagina se ve en blanco, verificar en orden:
+
+1. **HTML servido**: el `index.html` debe tener `<script src="/agentswiki/assets/index-xxx.js">`
+   (no `/src/main.jsx`). Si muestra `/src/main.jsx`, Pages esta sirviendo desde la rama, no del artifact.
+2. **Assets 200**: los JS/CSS en `/agentswiki/assets/` deben devolver 200.
+3. **Chunks dinamicos**: los chunks de contenido (`agentes-xxx.js`, etc.) deben existir.
+4. **Consola del navegador**: errores de runtime de React (F12 > Console).
+5. **Workflow log**: verificar que los steps build + deploy esten verdes.
 
 Alternativas documentadas en `src/content/deploy.md`: Vercel, Netlify, Docker.
 El wizard interactivo de deploy esta en `src/components/DeployWizard.jsx`.
+
+### Workflow actual
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/configure-pages@v5
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+```
 
 ## Roadmap completado
 
