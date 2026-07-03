@@ -7,6 +7,7 @@ export const PAGE_INDEX = [
   { slug: 'mcp-implementacion', title: 'Implementacion MCP', category: 'MCP', keywords: 'mcp servidor implementacion tools resources typescript python' },
   { slug: 'mcp-practico', title: 'Uso practico de MCPs', category: 'Recursos', keywords: 'mcp practico context7 skills integracion servidores' },
   { slug: 'sdd-guia', title: 'Flujo SDD', category: 'Metodologia', keywords: 'sdd system driven development metodologia flujo ciclo fases' },
+  { slug: 'buenas-practicas', title: 'Buenas Practicas IA', category: 'Metodologia', keywords: 'buenas practicas anti vibe coding disciplina spec verificacion arnes prompts gates checklist' },
   { slug: 'glosario', title: 'Glosario', category: 'Referencia', keywords: 'glosario terminos definiciones vocabulario referencia' },
   { slug: 'deploy', title: 'Guia de despliegue', category: 'Despliegue', keywords: 'despliegue deploy paso a paso guia produccion' },
 ]

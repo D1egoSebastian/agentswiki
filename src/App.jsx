@@ -36,6 +36,7 @@ const NAV = [
         icon: BookMarked,
         items: [
           { label: 'Flujo SDD', slug: 'sdd-guia' },
+          { label: 'Buenas Practicas', slug: 'buenas-practicas' },
         ],
       },
       {
@@ -307,9 +308,6 @@ function NexusFlow() {
 }
 
 function ContentPage({ slug }) {
-  const [content, setContent] = useState(null)
-  const [loading, setLoading] = useState(true)
-
   if (slug === 'glosario') {
     return (
       <div className="max-w-content mx-auto">
@@ -333,6 +331,13 @@ function ContentPage({ slug }) {
       </div>
     )
   }
+
+  return <MarkdownPage slug={slug} />
+}
+
+function MarkdownPage({ slug }) {
+  const [content, setContent] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
