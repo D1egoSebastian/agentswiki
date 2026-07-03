@@ -62,6 +62,7 @@ Guia Operativa E2E para construir sistemas con agentes de inteligencia artificia
     │   ├── mcp-implementacion.md # Implementacion de servidores MCP
     │   ├── mcp-practico.md     # Uso practico + Context7 + Skills
     │   ├── sdd-guia.md         # Metodologia SDD (flujo E2E)
+    │   ├── buenas-practicas.md # Guia anti-vibe-coding (spec-anchored, gates, prompts)
     │   └── deploy.md           # Guia de despliegue (alternativas al wizard)
     │
     ├── components/             # Componentes React
@@ -72,7 +73,7 @@ Guia Operativa E2E para construir sistemas con agentes de inteligencia artificia
     │   └── DeployWizard.jsx    # Wizard paso a paso de despliegue
     │
     └── data/
-        ├── pages.js            # Indice de paginas para busqueda (10 entradas)
+        ├── pages.js            # Indice de paginas para busqueda (11 entradas)
         └── glossary.js         # 15 terminos del glosario
 ```
 
@@ -89,25 +90,36 @@ App
 │   ├── Header (dot + Agent Atlas)
 │   ├── SearchBar (Fuse.js, Ctrl+K)
 │   └── Nav (3 secciones: Conocimiento / Despliegue / Recursos)
-│       ├── Seccion "Conocimiento"
-│       │   ├── Inicio
-│       │   ├── Agentes de IA (sub: agente, arquitectura, componentes)
-│       │   ├── MCP (sub: intro, implementacion, uso practico)
-│       │   ├── Metodologia (sub: flujo SDD)
-│       │   └── Referencia (sub: glosario)
-│       ├── Seccion "Despliegue"
-│       │   └── Guia paso a paso (slug: deploy)
-│       └── Seccion "Recursos"
-│           └── Skills y MCPs (slug: mcp-practico)
-│
-├── TopBar (solo mobile, con hamburguesa)
-│
-└── ContentPage (selecciona segun slug)
-    ├── slug='glosario'    → GlossaryViewer
-    ├── slug='sdd-guia'    → SDDFlow (diagrama visual interactivo)
-    ├── slug='deploy'      → DeployWizard (paso a paso con progress bar)
-    └── [default]          → MarkdownRenderer(content) con carga dinamica .md
+    │       ├── Seccion "Conocimiento"
+    │       │   ├── Inicio
+    │       │   ├── Agentes de IA (sub: agente, arquitectura, componentes)
+    │       │   ├── MCP (sub: intro, implementacion, uso practico)
+    │       │   ├── Metodologia (sub: flujo SDD, buenas practicas)
+    │       │   └── Referencia (sub: glosario)
+    │       ├── Seccion "Despliegue"
+    │       │   └── Guia paso a paso (slug: deploy)
+    │       └── Seccion "Recursos"
+    │           └── Skills y MCPs (slug: mcp-practico)
+    │
+    ├── TopBar (solo mobile, con hamburguesa)
+    │
+    └── ContentPage (selecciona segun slug — sin hooks, solo dispatch)
+        ├── slug='glosario'    → GlossaryViewer
+        ├── slug='sdd-guia'    → SDDFlow (diagrama visual interactivo)
+        ├── slug='deploy'      → DeployWizard (paso a paso con progress bar)
+        └── [default]          → MarkdownPage(slug) → MarkdownRenderer(content)
 ```
+
+### Nota: Rules of Hooks
+
+`ContentPage` **no contiene hooks**. Los early returns para `glosario`/`sdd-guia`/`deploy`
+delegan a componentes propios, y el caso default renderiza `MarkdownPage`, un sub-componente
+que contiene los `useState` + `useEffect` de carga dinamica de `.md`.
+
+Antes de este refactor, los early returns ocurrian **antes** del `useEffect` dentro del mismo
+componente, violando las Rules of Hooks: al navegar de una pagina Markdown a SDD/Glosario/Deploy
+el orden de hooks cambiaba (de 3 a 2) y React blanqueaba la pantalla. Separar `MarkdownPage`
+resuelve el bug porque cada rama renderiza un componente distinto.
 
 ### Flujo de datos
 
@@ -116,7 +128,7 @@ App
 3. Si no, `ContentPage` decide el componente segun el slug.
 4. `NAV` es un array estatico con 3 secciones: items directos + subs (subcategorias).
 5. Los archivos `.md` se cargan con `import.meta.glob` — cada pagina es su propio chunk.
-6. `SearchBar` usa Fuse.js indexando `PAGE_INDEX` (10 paginas).
+6. `SearchBar` usa Fuse.js indexando `PAGE_INDEX` (11 paginas).
 
 ## Paginas y componentes
 
@@ -130,6 +142,7 @@ App
 | mcp-implementacion | Implementacion MCP | .md | MCP |
 | mcp-practico | Uso practico de MCPs | .md | Recursos |
 | sdd-guia | Flujo SDD | Componente (SDDFlow) | Metodologia |
+| buenas-practicas | Buenas Practicas IA | .md | Metodologia |
 | glosario | Glosario | Componente (GlossaryViewer) | Referencia |
 | deploy | Guia de despliegue | Componente (DeployWizard) | Despliegue |
 
